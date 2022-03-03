@@ -88,7 +88,7 @@ class HistBox{
       _histosName(histosName),
       _outfile(f)
     { 
-      cout<<"-----> HistManager: HistBox constructor: ["<<_histType<<"] ["<<_histN<<"] ["<<_histosName<<"] ["<<_histosTitle<<"]"<<endl;
+      cout<<"-----> HistManager: HistBox constructor: ["<<_histType<<"]-["<<_histN<<"]-["<<_histosName<<"]-["<<_histosTitle<<"]"<<endl;
 
       _histosObj = new TH1*[_histN];
 
