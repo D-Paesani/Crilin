@@ -42,47 +42,51 @@ TFile *splineFile;
 TSpline5* templSpl;
 TDirectory *spline_dir, *splineGr_dir, *samples_dir, *templDraw_dir, *splineDraw_dir, *templResampDraw_dir, *preProcessing_dir;
 TFile* outFile;
-Long64_t etp, lognGoodFits = 0, teGoodFits = 0;
+Long64_t etp, maxEvents, lognGoodFits = 0, teGoodFits = 0;
+TString runName;
+int doGenTemplate = 0, doFitTemplate = 0;
 HistManager HM;
 
-void fuzzyTemp_proc(TH1* histObj, int histN, int& histSkipFlag) { //processa il fuzzyTemplate
+void fuzzyTemp_proc(TH1* histObj, int histN, int& histSkipFlag) { 
 
-  TString histName = histObj->GetName();
+   TString histName = histObj->GetName();
+   // histName.ReplaceAll("Resamp", "");
+   // histName.ReplaceAll("fuzzy", "");
 
-  TCanvas *templDraw_can = new TCanvas(histName);
-  templDraw_dir->cd();  
-  histObj->SetTitle(histName);
-  histObj->SetDrawOption("zcol");
-  histObj->Draw("zcol");
-  templDraw_can->SetLogz();
-  templDraw_can->Write();
+   TCanvas *templDraw_can = new TCanvas(histName);
+   templDraw_dir->cd();  
+   histObj->SetTitle(histName);
+   histObj->SetDrawOption("zcol");
+   histObj->Draw("zcol");
+   templDraw_can->SetLogz();
+   templDraw_can->Write();
 
-  TCanvas *spline_can = new TCanvas(histName + "_spline"); 
-  spline_can->cd();
+   TCanvas *spline_can = new TCanvas(histName + "_spline"); 
+   spline_can->cd();
 
-  TProfile *teProf = ((TH2*)histObj)->ProfileX(); 
-  TSpline5 *teSpline = new TSpline5(teProf);
-  TGraphErrors *teSplGr = (TGraphErrors*)(((TH2*)histObj)->ProfileX());
+   TProfile *teProf = ((TH2*)histObj)->ProfileX(); 
+   TSpline5 *teSpline = new TSpline5(teProf);
+   TGraphErrors *teSplGr = (TGraphErrors*)(((TH2*)histObj)->ProfileX());
 
-  teProf->SetName(histName + "_profile");  
-  teSpline->SetName(histName + "_spline");
-  teSpline->SetLineColor(kOrange);
-  teProf->Draw();
-  teSpline->Draw("L same");
-  
-  splineDraw_dir->cd();  
-  spline_can->Write();
+   teProf->SetName(histName + "_profile");  
+   teSpline->SetName(histName + "_spline");
+   teSpline->SetLineColor(kOrange);
+   teProf->Draw();
+   teSpline->Draw("L same");
 
-  teSplGr->SetMarkerStyle(8);
-  teSplGr->SetMarkerSize(.5);
-  teSplGr->SetMarkerColor(kBlue);
-  teSplGr->SetLineColor(kOrange);
+   splineDraw_dir->cd();  
+   spline_can->Write();
 
-  splineGr_dir->cd();
-  teSplGr->Write(histName + "_graph");
+   teSplGr->SetMarkerStyle(8);
+   teSplGr->SetMarkerSize(.5);
+   teSplGr->SetMarkerColor(kBlue);
+   teSplGr->SetLineColor(kOrange);
 
-  spline_dir->cd();
-  teSpline->Write();
+   splineGr_dir->cd();
+   teSplGr->Write(histName + "_graph");
+
+   spline_dir->cd();
+   teSpline->Write();
 }
 
 void times_proc(TH1* histObj, int histN, int& histSkipFlag) { //fitta le distribuzioni tempi con gaus...
@@ -93,29 +97,54 @@ void times_proc(TH1* histObj, int histN, int& histSkipFlag) { //fitta le distrib
    double tmax = tpeak + 1, tmin = tpeak - 1;
    TF1 timeFit = TF1("g", "gaus", tmin, tmax); timeFit.SetParameter(1, tpeak); timeFit.SetParameter(2, 2);
    histObj->Fit(&timeFit, "R");
+   histObj->Fit(&timeFit, "R");
+   cout<<Form("----------->> Processed %s" , histObj->GetName())<<endl;
+   cout<<runName<<" "<<timeFit.GetParameter(2)<<", "<<timeFit.GetParError(2)<<endl<<endl;
+}
+
+void charge_proc(TH1* histObj, int histN, int& histSkipFlag) {
+
+   double min_tmp = histObj->GetXaxis()->GetXmin();
+   double max_tmp = histObj->GetXaxis()->GetXmax();
+   histObj->GetXaxis()->SetRangeUser(10, 1000);
+   double qpeak = histObj->GetBinCenter(histObj->GetMaximumBin());
+   histObj->GetXaxis()->SetRangeUser(min_tmp, max_tmp);
+
+   double qmax = qpeak + 80, qmin = qpeak - 80; float pk,sigma;
+   TF1 fit1 = TF1("g", "gaus", qmin, qmax); fit1.SetParameter(1, qpeak); fit1.SetParameter(2, 10); histObj->Fit(&fit1, "R"); 
+   pk = fit1.GetParameter(1); sigma = fit1.GetParameter(2);
+   fit1 = TF1("g", "gaus", pk - 2.5*sigma, pk + 2.5*sigma); fit1.SetParameter(1, pk); fit1.SetParameter(2, sigma); histObj->Fit(&fit1, "R"); 
+   pk = fit1.GetParameter(1); sigma = fit1.GetParameter(2);
+
 }
 
 void analysis::Begin(TTree* tree)
 {
-   cout<<"::::::::::::::::::::: Start analysis :::::::::::::::::::::"<<endl<<endl;
+   cout<<"::::::::::::::::::::: Start analysis :::::::::::::::::::::"<<endl<<endl; 
 
    TString opti = GetOption();
    cout<<"Options: "<<opti<<endl;
    TObjArray* opt = opti.Tokenize(" ");
-   TString runName = ((TObjString*)(opt->At(0)))->String(); cout<<"RunName: "<<runName<<endl;
-   TString inName = ((TObjString*)(opt->At(1)))->String(); cout<<"InFile: "<<inName<<endl;
-   TString outName = ((TObjString*)(opt->At(2)))->String(); cout<<"OutFile: "<<outName<<endl<<endl;
-   if (doGenTemplate) { outName.ReplaceAll(".root", "_templ.root");}
+   runName                 = ((TObjString*)(opt->At(0)))->String(); cout<<"RunName: "<<runName<<endl;
+   TString inName          = ((TObjString*)(opt->At(1)))->String(); cout<<"InFile: "<<inName<<endl;
+   TString outName         = ((TObjString*)(opt->At(2)))->String(); cout<<"OutFile: "<<outName<<endl;
+   TString modeName        = ((TObjString*)(opt->At(3)))->String(); cout<<"mode: "<<modeName<<endl;
+   TString splineFileName  = ((TObjString*)(opt->At(4)))->String(); cout<<"splineFile: "<<splineFileName<<endl;
+   TString maxEvtName      = ((TObjString*)(opt->At(5)))->String(); cout<<"maxEvt: "<<maxEvtName<<endl<<endl;
+
+   maxEvents = maxEvtName.Atoll();
+   if(modeName == "f") { doGenTemplate = 0; doFitTemplate = 1; }
+   else if (modeName == "g") { doGenTemplate = 1; doFitTemplate = 0; }
+
    outFile = new TFile(outName.Data(), "RECREATE"); 
    outFile->cd();
-
    Init(tree);
 
    cout<<"Creating HistBoxes:"<<endl;
    HM.SetOutFile(outFile);
    HM.SetNamerFun(&namerFunc_def);
    
-   HM.AddHistBox("th1f", 1, "chargeRaw", "Q", "Q", "pC", 600, 10, 610); // da sistemare range di carica in tutto il codice
+   HM.AddHistBox("th1f", 1, "chargeRaw", "Q", "Q", "pC", qBins, qFrom, qTo, &charge_proc); // da sistemare range di carica in tutto il codice
    HM.AddHistBox("th1f", 1, "bLineRms", "Base line rms", "", "mV", 500, 0.0, 0.2); 
    HM.AddHistBox("th1f", 1, "bLine", "Base line", "", "mV", 500, -0.25, 0.25); 
    HM.AddHistBox("th1f", 1, "timesTrig", "Trigger reco times", "Time", "ns",  tiBins, tiFrom, tiTo, &times_proc);
@@ -123,18 +152,18 @@ void analysis::Begin(TTree* tree)
    HM.AddHistBox("th1f", 1, "timesLogn", "Logn times", "Time", "ns",  tiBins, tiFrom, tiTo, &times_proc); 
    HM.AddHistBox("th1f", 1, "timesTe", "Template times", "Time", "ns",  tiBins, tiFrom, tiTo, &times_proc); 
    HM.AddHistBox("th1f", 1, "timesPk", "Peak times", "Time", "ns",  tiBins, tiFrom, tiTo, &times_proc); 
-   HM.AddHistBox("th2f", 1, "pseudoSlewing", "Pseudo time slewing", "Q", "pC", "T", "ns", 1000, 0, 1000, tiBins, tiFrom, tiTo); //da sistemare range
-   HM.AddHistBox("th2f", 1, "teSlewing", "Template time slewing", "Q", "pC", "T", "ns", 1000, 0, 1000, tiBins, tiFrom, tiTo); //da sistemare range
+   HM.AddHistBox("th2f", 1, "pseudoSlewing", "Pseudo time slewing", "Q", "pC", "T", "ns", qBins, qFrom, qTo, tiBins, tiFrom, tiTo); //da sistemare range
+   HM.AddHistBox("th2f", 1, "teSlewing", "Template time slewing", "Q", "pC", "T", "ns", qBins, qFrom, qTo, tiBins, tiFrom, tiTo); //da sistemare range
    HM.AddHistBox("th2f", 1, "fuzzy", "Fuzzy template", "Time", "ns", "Normalised Pulse", "", teTiBins, teTiFrom, teTiTo, teAmpBins, -0.1, 1.1, &fuzzyTemp_proc);
    HM.AddHistBox("th2f", 1, "fuzzyResamp", "Fuzzy template resampled", "Time", "ns", "Normalised Pulse", "", teTiBins, teTiFrom, teTiTo, teAmpBins, -0.1, 1.1, &fuzzyTemp_proc);
    HM.AddHistBox("th1f", 1, "timePseudoModBin", "Flatness over bin", "Normalised bin", "",  11, 0, 1.1);
    HM.AddHistBox("th1f", 1, "timeTeModBin", "Flatness over bin", "Normalised bin", "",  11, 0, 1.1);
    HM.AddHistBox("th1f", 1, "teChi2","Chi2", "#chi^{2}/NDOF","", 200, 0, 4);
    HM.AddHistBox("th2f", 1, "teChi2_t", "Chi2 vs time", "T", "ns", "#chi^{2}/NDOF", "", tiBins, tiFrom, tiTo, 100, 0, 5); 
-   HM.AddHistBox("th2f", 1, "teChi2_q", "Chi2 vs charge", "Q", "pC",  "#chi^{2}/NDOF", "", 600, 10, 610, 100, 0, 5); 
+   HM.AddHistBox("th2f", 1, "teChi2_q", "Chi2 vs charge", "Q", "pC",  "#chi^{2}/NDOF", "", qBins, qFrom, qTo, 100, 0, 5); 
    HM.AddHistBox("th1f", 1, "lognChi2","Chi2", "#chi^{2}/NDOF","", 200, 0, 4);
    HM.AddHistBox("th2f", 1, "lognChi2_t", "Logn vs time", "T", "ns", "#chi^{2}/NDOF", "", tiBins, tiFrom, tiTo, 100, 0, 5); 
-   HM.AddHistBox("th2f", 1, "lognChi2_q", "Logn vs charge", "Q", "pC",  "#chi^{2}/NDOF", "", 600, 10, 610, 100, 0, 5); 
+   HM.AddHistBox("th2f", 1, "lognChi2_q", "Logn vs charge", "Q", "pC",  "#chi^{2}/NDOF", "", qBins, qFrom, qTo, 100, 0, 5); 
    cout<<endl<<endl;
 
    spline_dir = outFile->mkdir("splines");
@@ -226,6 +255,10 @@ Bool_t analysis::Process(Long64_t entry)
    TF1 waveFitFun = TF1("fitf", waveSpFun, tmin, tmax, 0); 
    pkV = waveFitFun.GetMaximum(tmin, tmax);
    pkT = waveFitFun.GetMaximumX(tmin, tmax);
+   // TF1 gausFit = TF1("g", "gaus", pkT-2, pkT+2.2);  // -1 +1.2
+   // gausFit.SetParameter(1, pkT); gausFit.SetParameter(2, 1);
+   // waveGr.Fit(&gausFit, "REMQ");
+   // pkV = gausFit.GetMaximum();
    double thr = pkV*CF;
    double psT = waveFitFun.GetX(thr); 
 
@@ -297,7 +330,7 @@ Bool_t analysis::Process(Long64_t entry)
          tempFun.SetParameter(2,  0.);
          tempFun.SetParLimits(2, -0.01, 0.01); //constrollare
          gStyle->SetOptFit(111);
-         int fitr = waveGr.Fit( "tempFun", "FREMQ" ); 
+         int fitr = waveGr.Fit( "tempFun", "REMQ" );  //F
          double amp = tempFun.GetParameter(0);      
          if (fitr<0) {cout<<"----------> templ fit failed: "<<fitr<<endl;}
          else { 
