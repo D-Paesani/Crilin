@@ -1,7 +1,7 @@
 void reso_2()
 {
 //=========Macro generated from canvas: c_1/c_1
-//=========  (Wed Oct 12 14:26:36 2022) by ROOT version 6.24/06
+//=========  (Wed Oct 12 14:55:36 2022) by ROOT version 6.24/06
    TCanvas *c_1 = new TCanvas("c_1", "c_1",0,0,800,500);
    gStyle->SetOptFit(1);
    gStyle->SetOptTitle(0);
