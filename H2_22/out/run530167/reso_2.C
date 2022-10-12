@@ -1,14 +1,17 @@
 void reso_2()
 {
 //=========Macro generated from canvas: c_1/c_1
-//=========  (Wed Oct 12 12:10:39 2022) by ROOT version 6.24/06
-   TCanvas *c_1 = new TCanvas("c_1", "c_1",0,0,600,450);
+//=========  (Wed Oct 12 14:26:36 2022) by ROOT version 6.24/06
+   TCanvas *c_1 = new TCanvas("c_1", "c_1",0,0,800,500);
    gStyle->SetOptFit(1);
+   gStyle->SetOptTitle(0);
    c_1->SetHighLightColor(2);
    c_1->Range(18.86673,-0.001355343,328.7433,0.03219808);
    c_1->SetFillColor(0);
    c_1->SetBorderMode(0);
    c_1->SetBorderSize(2);
+   c_1->SetTickx(1);
+   c_1->SetTicky(1);
    c_1->SetFrameBorderMode(0);
    c_1->SetFrameBorderMode(0);
    
@@ -55,34 +58,44 @@ void reso_2()
 
    Int_t ci;      // for color index setting
    TColor *color; // for color definition with alpha
-   ci = TColor::GetColor("#000099");
+   ci = TColor::GetColor("#0000cc");
    Graph_Graph01001->SetLineColor(ci);
+   Graph_Graph01001->SetLineWidth(2);
    Graph_Graph01001->GetXaxis()->SetTitle("mean SiPM charge [pC]");
    Graph_Graph01001->GetXaxis()->SetRange(0,101);
    Graph_Graph01001->GetXaxis()->SetLabelFont(42);
+   Graph_Graph01001->GetXaxis()->SetLabelSize(0.05);
+   Graph_Graph01001->GetXaxis()->SetTitleSize(0.05);
    Graph_Graph01001->GetXaxis()->SetTitleOffset(1);
-   Graph_Graph01001->GetXaxis()->SetTitleFont(42);
    Graph_Graph01001->GetYaxis()->SetTitle("mean time cell resolution [ns]");
    Graph_Graph01001->GetYaxis()->SetLabelFont(42);
-   Graph_Graph01001->GetYaxis()->SetTitleFont(42);
+   Graph_Graph01001->GetYaxis()->SetLabelSize(0.05);
+   Graph_Graph01001->GetYaxis()->SetTitleSize(0.05);
+   Graph_Graph01001->GetYaxis()->SetTitleOffset(1);
    Graph_Graph01001->GetZaxis()->SetLabelFont(42);
+   Graph_Graph01001->GetZaxis()->SetLabelSize(0.03);
    Graph_Graph01001->GetZaxis()->SetTitleOffset(1);
    Graph_Graph01001->GetZaxis()->SetTitleFont(42);
    gre->SetHistogram(Graph_Graph01001);
    
    
-   TF1 *fitf1002 = new TF1("fitf","sqrt([0]*[0]/(x*x) + [1]*[1])",52.2848,295.3252, TF1::EAddToList::kNo);
+   TF1 *fitf1002 = new TF1("fitf","sqrt([0]*[0]/(x*x) + [1]*[1])",49.85439,297.7557, TF1::EAddToList::kNo);
    fitf1002->SetFillColor(19);
    fitf1002->SetFillStyle(0);
-   fitf1002->SetLineColor(2);
-   fitf1002->SetLineWidth(2);
+
+   ci = TColor::GetColor("#cc0000");
+   fitf1002->SetLineColor(ci);
+   fitf1002->SetLineWidth(3);
    fitf1002->SetChisquare(16.31629);
    fitf1002->SetNDF(4);
    fitf1002->GetXaxis()->SetLabelFont(42);
+   fitf1002->GetXaxis()->SetLabelSize(0.05);
+   fitf1002->GetXaxis()->SetTitleSize(0.05);
    fitf1002->GetXaxis()->SetTitleOffset(1);
-   fitf1002->GetXaxis()->SetTitleFont(42);
    fitf1002->GetYaxis()->SetLabelFont(42);
-   fitf1002->GetYaxis()->SetTitleFont(42);
+   fitf1002->GetYaxis()->SetLabelSize(0.05);
+   fitf1002->GetYaxis()->SetTitleSize(0.05);
+   fitf1002->GetYaxis()->SetTitleOffset(1);
    fitf1002->SetParameter(0,1.914926);
    fitf1002->SetParError(0,0.01679252);
    fitf1002->SetParLimits(0,0,0);
@@ -92,9 +105,9 @@ void reso_2()
    fitf1002->SetParent(gre);
    gre->GetListOfFunctions()->Add(fitf1002);
    
-   TPaveStats *ptstats = new TPaveStats(0.62,0.815,0.98,0.935,"brNDC");
+   TPaveStats *ptstats = new TPaveStats(0.49,0.73,0.85,0.85,"brNDC");
    ptstats->SetName("stats");
-   ptstats->SetBorderSize(1);
+   ptstats->SetBorderSize(0);
    ptstats->SetFillColor(0);
    ptstats->SetTextAlign(12);
    ptstats->SetTextFont(42);
@@ -123,15 +136,6 @@ void reso_2()
    ci = TColor::GetColor("#0000ff");
    gaxis->SetLineColor(ci);
    gaxis->Draw();
-   
-   TPaveText *pt = new TPaveText(0.398557,0.94,0.601443,0.995,"blNDC");
-   pt->SetName("title");
-   pt->SetBorderSize(0);
-   pt->SetFillColor(0);
-   pt->SetFillStyle(0);
-   pt->SetTextFont(42);
-   TText *pt_LaTex = pt->AddText("run530167");
-   pt->Draw();
    c_1->Modified();
    c_1->cd();
    c_1->SetSelected(c_1);
