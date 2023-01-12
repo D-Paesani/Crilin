@@ -7,6 +7,12 @@ using namespace std;
 
 void ANA_CLASS_NAME::LoopEntries(Long64_t thisEntry) { 
 
+   int clu = 0;
+   for (int i = 0; i < 4; i++) { 
+      clu += !(read->nHit[i] == 1)
+   }
+   if (clu != 0) {return;}
+
    NEWB.cryPos[0] = read->xRaw[0] + (read->xRaw[2] - read->xRaw[0])*(PAR.zT1Cry/PAR.zT1T2);
    NEWB.cryPos[1] = read->xRaw[1] + (read->xRaw[3] - read->xRaw[1])*(PAR.zT1Cry/PAR.zT1T2);
 
@@ -167,14 +173,6 @@ void ANA_CLASS_NAME::LoopEntries(Long64_t thisEntry) {
          cc->Write(); 
          VAR.CONF.outFile->cd();
       }
-
-      PM.Fill1d("chargeRaw", ich, chargeTmp);
-      PM.Fill1d("bLineRms", ich, brmsTmp);
-      PM.Fill1d("bLine", ich, blineTmp);
-      PM.Fill1d("timesPs", ich, timeTmp);
-      PM.Fill2d("slewingPs", ich, chargeTmp, timeTmp);
-      PM.Fill1d("flatnessPs", ich, 1000*timeTmp/digiTimePs - (int)(1000*timeTmp)/(int)digiTimePs);
-      PM.Fill1d("timesPs", ich, timeTmp);
       
       TGraphErrors *dsGra = VAR.CONF.set_doDsScan ? new TGraphErrors[PAR.dsScanPts] : nullptr;
 
@@ -188,9 +186,8 @@ void ANA_CLASS_NAME::LoopEntries(Long64_t thisEntry) {
             double wtimenorm = wx - timeTmp;
             double wamplnorm = wy / peakTmp;
 
-            if (VAR.CONF.set_genTemplate && thisPar->genTemplate) { //gen template
-               PM.Fill2d(fuzzyToFill.Data(), ich, wtimenorm, wamplnorm);
-            }
+            // if (VAR.CONF.set_genTemplate && thisPar->genTemplate) { //gen template
+            // }
 
             if (ich > 1) {continue;} //only SiPM 
 

@@ -5,7 +5,6 @@ using namespace std;
 #define TREE_CLASS_NAME daq
 
 #include "includes/ana/anaClass.h"
-#include "includes/RootPlotManager.h"
 #include "includes/RootIncludes.h"
 #include "includes/Branch2Histo.h"
 #include "includes/TGraphHelper.h"
@@ -18,12 +17,9 @@ public:
 
   TREE_CLASS_NAME *read; 
 
-  RPM PM;
   static constexpr anaPar PAR;
 
   struct anavars {
-
-    RPM *pm;
 
     struct conf {
 
@@ -47,11 +43,6 @@ public:
 
   typedef struct anavars AnaVars;
   typedef struct anavars::conf AnaConf;
-
-  static RPM::ProcessFunction proc_skipUnused;
-  static RPM::ProcessFunction proc_times;
-  static RPM::ProcessFunction proc_fuzzy;
-  static RPM::NamerFunction proc_namer;
 
   struct {
 

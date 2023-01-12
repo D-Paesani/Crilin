@@ -28,10 +28,6 @@ void ANA_CLASS_NAME::Begin() {
 
 void ANA_CLASS_NAME::Terminate() {
 
-   cout<<endl<<"Processing histograms..."<<endl<<endl<<endl;
-   PM.ProcessBoxes();
-   cout<<"...done"<<endl<<endl;
-
    if (VAR.CONF.set_newTree) {
       VAR.CONF.newFile->cd();
       VAR.CONF.newTree->CloneTree()->Write();
@@ -51,8 +47,6 @@ void ANA_CLASS_NAME::Init() {
    cout<<endl<<"-----> runName: "<<VAR.CONF.runName<<endl;
    cout<<"-----> inFile: "<< VAR.CONF.inFileName<<endl;
    cout<<"-----> outFile: "<<VAR.CONF.outFileName<<endl;
-
-   VAR.pm = &PM; 
 
    if (VAR.CONF.chain == 0) {
 
