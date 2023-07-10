@@ -1,0 +1,7 @@
+pksearch:       [0, 500]        samples
+baseline:       [-36.0, -14.5]  ns (wrt pk)
+charge:         [-14, 110.0]     ns
+spline:         [-13.5, 6.0]    ns
+cf:             11 %
+invert:         1
+attenuation:    1.0
