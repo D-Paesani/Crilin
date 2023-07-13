@@ -1,0 +1,7 @@
+
+/vis/open OGLSQt
+
+/run/initialize
+/vis/drawVolume
+/vis/scene/add/trajectories smooth
+/vis/viewer/flush
